@@ -1,3 +1,3 @@
-pip install -r requirements
+pip install -r requirements.txt
 
-./env/Scripts/activate
+source env/bin/activate
