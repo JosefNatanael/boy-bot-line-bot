@@ -40,7 +40,7 @@ class Replier:
             if self.event_source_type == "room":
                 line_bot_api.leave_room(self.event.source.room_id)
             elif self.event_source_type == "group":
-                line_bot_api.leave_room(self.event.source.group_id)
+                line_bot_api.leave_group(self.event.source.group_id)
             else:
                 print("Nothing to leave")
         except LineBotApiError as e:
@@ -78,7 +78,9 @@ def handle_message(event):
 @handler.add(UnsendEvent)
 def handle_unsend(event):
     print(event)
-    # message_content = line_bot_api.get_message_content('<message_id>')
+    unsend_message_id = event.unsend.message_id
+    message_content = line_bot_api.get_message_content(unsend_message_id)
+    print(message_content.content_type)
 
 
 if __name__ == "__main__":
