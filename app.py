@@ -1,13 +1,15 @@
-from flask import Flask, request, abort
-import os
-
-from linebot import (
-    LineBotApi, WebhookHandler
-)
+from linebot.models import *
 from linebot.exceptions import (
     InvalidSignatureError
 )
-from linebot.models import *
+from linebot import (
+    LineBotApi, WebhookHandler
+)
+from flask import Flask, request, abort
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
 
 app = Flask(__name__)
 
