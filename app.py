@@ -1,6 +1,7 @@
 from linebot.models import *
 from linebot.exceptions import (
-    InvalidSignatureError
+    InvalidSignatureError,
+    LineBotApiError
 )
 from linebot import (
     LineBotApi, WebhookHandler
@@ -15,6 +16,35 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.getenv("CHANNEL_ACCESS_TOKEN"))
 # Channel Secret
 handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
+
+
+class Replier:
+    def __init__(self, event) -> None:
+        self.event = event
+        self.event_source_type = event["source"]["type"]
+        self.message = event.message.text
+
+    def start_process(self):
+        try:
+            if self.message == "bbcon leave":
+                self.leave()
+        except Exception as e:
+            print(e)
+            return False
+        return True
+
+    def leave(self) -> bool:
+        try:
+            if self.event_source_type == "room":
+                line_bot_api.leave_room(self.event["source"]["roomId"])
+            elif self.event_source_type == "group":
+                line_bot_api.leave_room(self.event["source"]["groupId"])
+            else:
+                print("Nothing to leave")
+        except LineBotApiError as e:
+            print("Error leaving")
+            return False
+        return True
 
 
 @app.route("/callback", methods=['POST'])
@@ -35,9 +65,12 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = TextSendMessage(text=event.message.text)
-    print(message)
     print(event)
-    line_bot_api.reply_message(event.reply_token, message)
+    if "bbcon" in message[:5]:
+        rep = Replier(event)
+        rep.start_process()
+    else:
+        line_bot_api.reply_message(event.reply_token, message)
 
 
 if __name__ == "__main__":
