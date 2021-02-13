@@ -64,7 +64,7 @@ class Replier:
             resend_message = ""
             for document in collection.find().sort("_id", pymongo.DESCENDING)[:num_to_resend]:
                 resend_message += document["message_text"]
-                resend_message += "---\n"
+                resend_message += "\n---\n"
             line_bot_api.reply_message(
                 self.event.reply_token, TextSendMessage(text=resend_message))
         except Exception as exc:
@@ -120,12 +120,12 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, message)
 
 
-@handler.add(UnsendEvent)
-def handle_unsend(event):
-    print(event)
-    unsend_message_id = event.unsend.message_id
-    message_content = line_bot_api.get_message_content(unsend_message_id)
-    print(message_content.content_type)
+# @handler.add(UnsendEvent)
+# def handle_unsend(event):
+#     print(event)
+#     unsend_message_id = event.unsend.message_id
+#     message_content = line_bot_api.get_message_content(unsend_message_id)
+#     print(message_content.content_type)
 
 
 if __name__ == "__main__":
