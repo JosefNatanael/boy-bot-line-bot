@@ -12,6 +12,7 @@ import os
 from linebot.models.events import UnsendEvent
 import pymongo
 from pymongo import MongoClient
+import datetime
 
 client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
 db = client[os.getenv("MONGODB_DATABASE")]
@@ -29,17 +30,54 @@ instant_resend = False
 
 
 class Replier:
-    def __init__(self, event) -> None:
+    def __init__(self, event, mode="message") -> None:
+        """
+            mode: string. "message" | "unsend"
+        """
         self.event = event
         self.event_source_type = event.source.type
-        self.message = event.message.text
+        self.mode = mode
+        if self.mode == "message":
+            self.message = event.message.text
+        elif self.mode == "unsend":
+            self.start_unsend_process()
 
-    def start_process(self):
+    def start_message_process(self):
+        global instant_resend
         try:
             if self.message == "bbcon leave":
                 self.leave()
+            elif self.message == "bbcon instant":
+                instant_resend = True
+            elif self.message == "bbcon manual":
+                instant_resend = False
             elif self.message.startswith("bbcon resend"):
                 self.resend()
+        except Exception as e:
+            print(e)
+            return False
+        return True
+
+    def start_unsend_process(self):
+        if not instant_resend:
+            return True
+        try:
+            unsend_message_id = self.event.unsend.message_id
+            collection = self.get_collection()
+            results_cursor = collection.find({"message_id": unsend_message_id})
+            num_found = collection.count_documents(
+                {"message_id": unsend_message_id})
+            if num_found == 1:
+                unsend_message = results_cursor[0]["message_text"]
+                unsend_source_user_id = results_cursor[0]["source_user_id"]
+                unsend_message_timestamp = results_cursor[0]["message_timestamp"]
+                dt = datetime.datetime.fromtimestamp(
+                    unsend_message_timestamp / 1000.0)
+                message = f"{unsend_source_user_id} {dt}: {unsend_message}"
+                line_bot_api.push_message(
+                    self.get_room_or_group_id(), TextSendMessage(text=message))
+            else:
+                print("Ambiguous unsend")
         except Exception as e:
             print(e)
             return False
@@ -69,8 +107,10 @@ class Replier:
                 collection.count_documents({}), user_arg)
             resend_message = ""
             for document in collection.find().sort("_id", pymongo.DESCENDING)[:num_to_resend]:
-                resend_message += document["message_text"]
-                resend_message += "\n---\n"
+                dt = datetime.datetime.fromtimestamp(
+                    document['message_timestamp'] / 1000.0)
+                resend_message += f"{document['source_user_id']} {dt}: {document['message_text']}"
+                resend_message += "\n----------\n"
             line_bot_api.reply_message(
                 self.event.reply_token, TextSendMessage(text=resend_message))
         except Exception as exc:
@@ -99,12 +139,6 @@ class Replier:
             return None
 
     def save_to_db(self):
-        """
-            post interface:
-            - message_text: string
-            - source_user_id: string
-            - message_timestamp: int
-        """
         post = {
             "message_id": self.event.message.id,
             "message_text": self.event.message.text,
@@ -120,6 +154,12 @@ class Replier:
             print(exc)
             return False
         return True
+
+    def get_room_or_group_id(self):
+        if self.event_source_type == "room":
+            return self.event.source.room_id
+        elif self.event_source_type == "group":
+            return self.event.source.group_id
 
 
 @app.route("/callback", methods=['POST'])
@@ -143,19 +183,15 @@ def handle_message(event):
     print(event)
     rep = Replier(event)
     if "bbcon" in message.text[:5]:
-        rep.start_process()
+        rep.start_message_process()
     else:
         rep.save_to_db()
-        # save_to_db(event.message.text, event.source.user_id, event.timestamp)
-        # line_bot_api.reply_message(event.reply_token, message)
 
 
 @handler.add(UnsendEvent)
 def handle_unsend(event):
     print(event)
-    unsend_message_id = event.unsend.message_id
-    # message_content = line_bot_api.get_message_content(unsend_message_id)
-    # print(message_content.content_type)
+    rep = Replier(event, mode="unsend")
 
 
 if __name__ == "__main__":
