@@ -10,6 +10,11 @@ from flask import Flask, request, abort
 import os
 
 from linebot.models.events import UnsendEvent
+from pymongo import MongoClient
+
+client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
+db = client[os.getenv("boybotdb")]
+collection = db[os.getenv("boybotcollection")]
 
 
 app = Flask(__name__)
@@ -49,6 +54,26 @@ class Replier:
         return True
 
 
+def save_to_db(message_text: str, source_user_id: str, message_timestamp: int) -> bool:
+    """
+    post interface:
+    - message_text: string
+    - source_user_id: string
+    - message_timestamp: int
+    """
+    post = {
+        "message_text": message_text,
+        "source_user_id": source_user_id,
+        "message_timestamp": message_timestamp
+    }
+    try:
+        collection.insert_one(post)
+    except Exception as exc:
+        print(exc)
+        return False
+    return True
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -72,6 +97,7 @@ def handle_message(event):
         rep = Replier(event)
         rep.start_process()
     else:
+        save_to_db(event.message.text, event.source.user_id, event.timestamp)
         line_bot_api.reply_message(event.reply_token, message)
 
 
