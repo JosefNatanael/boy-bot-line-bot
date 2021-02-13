@@ -33,6 +33,7 @@ class Replier:
     def __init__(self, event, mode="message") -> None:
         """
             mode: string. "message" | "unsend"
+            event_source_type. "room" | "group"
         """
         self.event = event
         self.event_source_type = event.source.type
@@ -71,13 +72,26 @@ class Replier:
                 unsend_message = results_cursor[0]["message_text"]
                 unsend_source_user_id = results_cursor[0]["source_user_id"]
                 unsend_message_timestamp = results_cursor[0]["message_timestamp"]
+                # Add 8 hours in milliseconds (+ 28,800,000)
                 dt = datetime.datetime.fromtimestamp(
-                    unsend_message_timestamp / 1000.0)
-                message = f"{unsend_source_user_id} {dt}: {unsend_message}"
+                    (unsend_message_timestamp + 28800000) / 1000.0)
+
+                if self.event_source_type == "room":
+                    profile = line_bot_api.get_room_member_profile(
+                        self.get_room_or_group_id(), unsend_source_user_id)
+                    display_name = profile.display_name
+                elif self.event_source_type == "group":
+                    profile = line_bot_api.get_group_member_profile(
+                        self.get_room_or_group_id(), unsend_source_user_id)
+                    display_name = profile.display_name
+                else:
+                    display_name = unsend_source_user_id
+
+                message = f"{display_name} {dt}: {unsend_message}"
                 line_bot_api.push_message(
                     self.get_room_or_group_id(), TextSendMessage(text=message))
             else:
-                print("Ambiguous unsend")
+                print("Ambiguous unsend, probably unsent message is a bbcon command")
         except Exception as e:
             print(e)
             return False
@@ -106,11 +120,26 @@ class Replier:
             num_to_resend = min(
                 collection.count_documents({}), user_arg)
             resend_message = ""
+            room_or_group_id = self.get_room_or_group_id()
+
             for document in collection.find().sort("_id", pymongo.DESCENDING)[:num_to_resend]:
+                # Add 8 hours in milliseconds (+ 28,800,000)
                 dt = datetime.datetime.fromtimestamp(
-                    document['message_timestamp'] / 1000.0)
-                resend_message += f"{document['source_user_id']} {dt}: {document['message_text']}"
+                    (document['message_timestamp'] + 28800000) / 1000.0)
+                if self.event_source_type == "room":
+                    profile = line_bot_api.get_room_member_profile(
+                        room_or_group_id, document['source_user_id'])
+                    display_name = profile.display_name
+                elif self.event_source_type == "group":
+                    profile = line_bot_api.get_group_member_profile(
+                        room_or_group_id, document['source_user_id'])
+                    display_name = profile.display_name
+                else:
+                    display_name = document['source_user_id']
+
+                resend_message += f"{display_name} {dt}: {document['message_text']}"
                 resend_message += "\n----------\n"
+
             line_bot_api.reply_message(
                 self.event.reply_token, TextSendMessage(text=resend_message))
         except Exception as exc:
@@ -182,7 +211,7 @@ def handle_message(event):
     message = TextSendMessage(text=event.message.text)
     print(event)
     rep = Replier(event)
-    if "bbcon" in message.text[:5]:
+    if "bbcon" in message.text[:5] and event.source.user_id == os.getenv("SUPERUSER_ID"):
         rep.start_message_process()
     else:
         rep.save_to_db()
@@ -191,7 +220,8 @@ def handle_message(event):
 @handler.add(UnsendEvent)
 def handle_unsend(event):
     print(event)
-    rep = Replier(event, mode="unsend")
+    if instant_resend:
+        rep = Replier(event, mode="unsend")
 
 
 if __name__ == "__main__":
