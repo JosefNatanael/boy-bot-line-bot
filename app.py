@@ -15,7 +15,6 @@ from pymongo import MongoClient
 
 client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
 db = client[os.getenv("MONGODB_DATABASE")]
-collection = db[os.getenv("MONGODB_COLLECTION")]
 
 
 app = Flask(__name__)
@@ -24,6 +23,9 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.getenv("CHANNEL_ACCESS_TOKEN"))
 # Channel Secret
 handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
+
+
+instant_resend = False
 
 
 class Replier:
@@ -58,6 +60,10 @@ class Replier:
 
     def resend(self) -> bool:
         try:
+            collection = self.get_collection()
+            if collection is None:
+                return False
+
             user_arg = int(self.message[12:])
             num_to_resend = min(
                 collection.count_documents({}), user_arg)
@@ -72,25 +78,48 @@ class Replier:
             return False
         return True
 
+    def get_collection(self):
+        try:
+            # Find corresponding collection name from room id or group id or default
+            collection_name = ""
+            if self.event_source_type == "room":
+                collection_name = self.event.source.room_id
+            elif self.event_source_type == "group":
+                collection_name = self.event.source.group_id
+            else:
+                collection_name = os.getenv("MONGODB_COLLECTION")
 
-def save_to_db(message_text: str, source_user_id: str, message_timestamp: int) -> bool:
-    """
-    post interface:
-    - message_text: string
-    - source_user_id: string
-    - message_timestamp: int
-    """
-    post = {
-        "message_text": message_text,
-        "source_user_id": source_user_id,
-        "message_timestamp": message_timestamp
-    }
-    try:
-        collection.insert_one(post)
-    except Exception as exc:
-        print(exc)
-        return False
-    return True
+            # Return collection from collection name, create new capped collection if does not exist
+            if collection_name not in db.list_collection_names():
+                db.create_collection(
+                    collection_name, capped=True, size=5000000, max=500)
+            return db[collection_name]
+        except Exception as exc:
+            print(exc)
+            return None
+
+    def save_to_db(self):
+        """
+            post interface:
+            - message_text: string
+            - source_user_id: string
+            - message_timestamp: int
+        """
+        post = {
+            "message_id": self.event.message.id,
+            "message_text": self.event.message.text,
+            "source_user_id": self.event.source.user_id,
+            "message_timestamp": self.event.timestamp
+        }
+        try:
+            collection = self.get_collection()
+            if collection is None:
+                return False
+            collection.insert_one(post)
+        except Exception as exc:
+            print(exc)
+            return False
+        return True
 
 
 @app.route("/callback", methods=['POST'])
@@ -112,20 +141,21 @@ def callback():
 def handle_message(event):
     message = TextSendMessage(text=event.message.text)
     print(event)
+    rep = Replier(event)
     if "bbcon" in message.text[:5]:
-        rep = Replier(event)
         rep.start_process()
     else:
-        save_to_db(event.message.text, event.source.user_id, event.timestamp)
+        rep.save_to_db()
+        # save_to_db(event.message.text, event.source.user_id, event.timestamp)
         # line_bot_api.reply_message(event.reply_token, message)
 
 
-# @handler.add(UnsendEvent)
-# def handle_unsend(event):
-#     print(event)
-#     unsend_message_id = event.unsend.message_id
-#     message_content = line_bot_api.get_message_content(unsend_message_id)
-#     print(message_content.content_type)
+@handler.add(UnsendEvent)
+def handle_unsend(event):
+    print(event)
+    unsend_message_id = event.unsend.message_id
+    # message_content = line_bot_api.get_message_content(unsend_message_id)
+    # print(message_content.content_type)
 
 
 if __name__ == "__main__":
