@@ -13,8 +13,8 @@ from linebot.models.events import UnsendEvent
 from pymongo import MongoClient
 
 client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
-db = client[os.getenv("boybotdb")]
-collection = db[os.getenv("boybotcollection")]
+db = client[os.getenv("MONGODB_DATABASE")]
+collection = db[os.getenv("MONGODB_COLLECTION")]
 
 
 app = Flask(__name__)
