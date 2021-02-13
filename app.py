@@ -10,6 +10,7 @@ from flask import Flask, request, abort
 import os
 
 from linebot.models.events import UnsendEvent
+import pymongo
 from pymongo import MongoClient
 
 client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
@@ -35,6 +36,8 @@ class Replier:
         try:
             if self.message == "bbcon leave":
                 self.leave()
+            elif self.message.startswith("bbcon resend"):
+                self.resend()
         except Exception as e:
             print(e)
             return False
@@ -50,6 +53,22 @@ class Replier:
                 print("Nothing to leave")
         except LineBotApiError as e:
             print("Error leaving")
+            return False
+        return True
+
+    def resend(self) -> bool:
+        try:
+            user_arg = int(self.message[12:])
+            num_to_resend = min(
+                collection.count_documents({}), user_arg)
+            resend_message = ""
+            for document in collection.find().sort("_id", pymongo.DESCENDING)[:num_to_resend]:
+                resend_message += document["message_text"]
+                resend_message += "---\n"
+            line_bot_api.reply_message(
+                self.event.reply_token, TextSendMessage(text=resend_message))
+        except Exception as exc:
+            print(exc)
             return False
         return True
 
