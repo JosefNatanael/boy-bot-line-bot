@@ -117,7 +117,7 @@ def handle_message(event):
         rep.start_process()
     else:
         save_to_db(event.message.text, event.source.user_id, event.timestamp)
-        line_bot_api.reply_message(event.reply_token, message)
+        # line_bot_api.reply_message(event.reply_token, message)
 
 
 # @handler.add(UnsendEvent)
