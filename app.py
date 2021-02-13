@@ -74,7 +74,7 @@ class Replier:
                 unsend_message_timestamp = results_cursor[0]["message_timestamp"]
                 # Add 8 hours in milliseconds (+ 28,800,000)
                 dt = datetime.datetime.fromtimestamp(
-                    (unsend_message_timestamp + 28800000) / 1000.0)
+                    (unsend_message_timestamp + 28800000) / 1000.0).isoformat(" ", "seconds")
 
                 if self.event_source_type == "room":
                     profile = line_bot_api.get_room_member_profile(
@@ -125,7 +125,7 @@ class Replier:
             for document in collection.find().sort("_id", pymongo.DESCENDING)[:num_to_resend]:
                 # Add 8 hours in milliseconds (+ 28,800,000)
                 dt = datetime.datetime.fromtimestamp(
-                    (document['message_timestamp'] + 28800000) / 1000.0)
+                    (document['message_timestamp'] + 28800000) / 1000.0).isoformat(" ", "seconds")
                 if self.event_source_type == "room":
                     profile = line_bot_api.get_room_member_profile(
                         room_or_group_id, document['source_user_id'])
