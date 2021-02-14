@@ -65,7 +65,7 @@ class Replier:
             return False
         return True
 
-    def start_user_message_process(self):
+    def start_nonadmin_message_process(self):
         try:
             if self.message.startswith("boybot resend"):
                 self.resend()
@@ -78,6 +78,7 @@ class Replier:
                 pass
             elif self.message == "boybot prank":
                 self.prank_stefan()
+            self.simple_chat_bot_image_push()
         except Exception as e:
             print(e)
             return False
@@ -251,6 +252,31 @@ class Replier:
         line_bot_api.push_message(
             self.get_room_or_group_id(), image_message)
 
+    def simple_chat_bot_image_push(self):
+        try:
+            url = ""
+            if "cepet jing" in self.message or "cpt jing" in self.message:
+                url = "https://i.imgur.com/Z6iFmBa.jpg"
+            elif "apa lu" in self.message or "ap lu" in self.message or "apa lw" in self.message or "ap lw" in self.message:
+                url = "https://i.imgur.com/6JabrpZ.jpg"
+            elif "ganteng" in self.message:
+                url = "https://i.imgur.com/RuHNWgi.jpg"
+            elif "oi fan" == self.message:
+                url = "https://i.imgur.com/734wN2R.jpg"
+            if url == "":
+                return True
+            else:
+                image_message = ImageSendMessage(
+                    original_content_url=url,
+                    preview_image_url=url
+                )
+                line_bot_api.push_message(
+                    self.get_room_or_group_id(), image_message)
+        except Exception as exc:
+            print(exc)
+            return False
+        return True
+
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -275,7 +301,7 @@ def handle_message(event):
     if "bbcon" in message.text[:5] and event.source.user_id == os.getenv("SUPERUSER_ID"):
         rep.start_message_process()
     elif "boybot" in message.text[:6]:
-        rep.start_user_message_process()
+        rep.start_nonadmin_message_process()
     else:
         rep.save_to_db()
 
