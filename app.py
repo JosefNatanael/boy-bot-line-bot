@@ -13,6 +13,7 @@ from linebot.models.events import UnsendEvent
 import pymongo
 from pymongo import MongoClient
 import datetime
+import random
 
 client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
 db = client[os.getenv("MONGODB_DATABASE")]
@@ -27,6 +28,7 @@ handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 
 
 instant_resend = False
+superuser_mode = True
 
 
 class Replier:
@@ -44,7 +46,7 @@ class Replier:
             self.start_unsend_process()
 
     def start_message_process(self):
-        global instant_resend
+        global instant_resend, superuser_mode
         try:
             if self.message == "bbcon leave":
                 self.leave()
@@ -54,6 +56,28 @@ class Replier:
                 instant_resend = False
             elif self.message.startswith("bbcon resend"):
                 self.resend()
+            elif self.messsage == "bbcon enable superuser":
+                superuser_mode = True
+            elif self.message == "bbcon disable superuser":
+                superuser_mode = False
+        except Exception as e:
+            print(e)
+            return False
+        return True
+
+    def start_user_message_process(self):
+        try:
+            if self.message.startswith("boybot resend"):
+                self.resend()
+            elif self.message == "boybot help":
+                self.show_help()
+            elif self.message == "boybot stefanize":
+                # self.stefanize()
+                pass
+            elif self.message == "boybot quote":
+                pass
+            elif self.message == "boybot prank":
+                self.prank_stefan()
         except Exception as e:
             print(e)
             return False
@@ -76,6 +100,11 @@ class Replier:
                 dt = datetime.datetime.fromtimestamp(
                     (unsend_message_timestamp + 28800000) / 1000.0).isoformat(" ", "seconds")
 
+                if unsend_message_id == os.getenv("SUPERUSER_ID") and superuser_mode:
+                    return True
+                if unsend_message_id == "U02f47026e6e0afb8edb4b262e6308a8f":    # user id stefan
+                    self.prank_stefan()
+
                 if self.event_source_type == "room":
                     profile = line_bot_api.get_room_member_profile(
                         self.get_room_or_group_id(), unsend_source_user_id)
@@ -91,7 +120,18 @@ class Replier:
                 line_bot_api.push_message(
                     self.get_room_or_group_id(), TextSendMessage(text=message))
             else:
-                print("Ambiguous unsend, probably unsent message is a bbcon command")
+                print(
+                    "Ambiguous unsend, probably unsent message is a bbcon command or non text")
+        except Exception as e:
+            print(e)
+            return False
+        return True
+
+    def show_help(self):
+        help_message = "Commands:\nboybot help\nboybot resend\nboybot stefanize\nboybot quote\nboybot prank"
+        try:
+            line_bot_api.reply_message(
+                self.event.reply_token, TextSendMessage(text=help_message))
         except Exception as e:
             print(e)
             return False
@@ -116,7 +156,10 @@ class Replier:
             if collection is None:
                 return False
 
-            user_arg = int(self.message[12:])
+            message_args = self.message.split()
+            if len(message_args) == 3:
+                user_arg = int(message_args[2])
+
             num_to_resend = min(
                 collection.count_documents({}), user_arg)
             resend_message = ""
@@ -126,6 +169,9 @@ class Replier:
                 # Add 8 hours in milliseconds (+ 28,800,000)
                 dt = datetime.datetime.fromtimestamp(
                     (document['message_timestamp'] + 28800000) / 1000.0).isoformat(" ", "seconds")
+                if document['source_user_id'] == os.getenv("SUPERUSER_ID") and superuser_mode:
+                    continue
+
                 if self.event_source_type == "room":
                     profile = line_bot_api.get_room_member_profile(
                         room_or_group_id, document['source_user_id'])
@@ -190,6 +236,21 @@ class Replier:
         elif self.event_source_type == "group":
             return self.event.source.group_id
 
+    def prank_stefan(self):
+        image_links = [
+            "https://i.imgur.com/RuHNWgi.jpg",
+            "https://i.imgur.com/Z6iFmBa.jpg",
+            "https://i.imgur.com/6JabrpZ.jpg",
+            "https://i.imgur.com/734wN2R.jpg"
+        ]
+        selected_index = random.randint(0, len(image_links) - 1)
+        image_message = ImageSendMessage(
+            original_content_url=image_links[selected_index],
+            preview_image_url=image_links[selected_index]
+        )
+        line_bot_api.push_message(
+            self.get_room_or_group_id(), image_message)
+
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -213,6 +274,8 @@ def handle_message(event):
     rep = Replier(event)
     if "bbcon" in message.text[:5] and event.source.user_id == os.getenv("SUPERUSER_ID"):
         rep.start_message_process()
+    elif "boybot" in message.text[:6]:
+        rep.start_user_message_process()
     else:
         rep.save_to_db()
 
