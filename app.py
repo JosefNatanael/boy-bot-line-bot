@@ -248,8 +248,8 @@ class Replier:
             original_content_url=image_links[selected_index],
             preview_image_url=image_links[selected_index]
         )
-        line_bot_api.push_message(
-            self.get_room_or_group_id(), image_message)
+        line_bot_api.reply_message(
+            self.event.reply_token, image_message)
 
     def simple_chat_bot_image_push(self):
         try:
@@ -271,8 +271,6 @@ class Replier:
                 )
                 line_bot_api.reply_message(
                     self.event.reply_token, image_message)
-                # line_bot_api.push_message(
-                #     self.get_room_or_group_id(), image_message)
         except Exception as exc:
             print(exc)
             return False
