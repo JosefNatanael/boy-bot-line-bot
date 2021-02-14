@@ -78,7 +78,6 @@ class Replier:
                 pass
             elif self.message == "boybot prank":
                 self.prank_stefan()
-            self.simple_chat_bot_image_push()
         except Exception as e:
             print(e)
             return False
@@ -270,8 +269,10 @@ class Replier:
                     original_content_url=url,
                     preview_image_url=url
                 )
-                line_bot_api.push_message(
-                    self.get_room_or_group_id(), image_message)
+                line_bot_api.reply_message(
+                    self.event.reply_token, image_message)
+                # line_bot_api.push_message(
+                #     self.get_room_or_group_id(), image_message)
         except Exception as exc:
             print(exc)
             return False
@@ -303,6 +304,7 @@ def handle_message(event):
     elif "boybot" in message.text[:6]:
         rep.start_nonadmin_message_process()
     else:
+        rep.simple_chat_bot_image_push()
         rep.save_to_db()
 
 
