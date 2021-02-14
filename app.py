@@ -56,7 +56,7 @@ class Replier:
                 instant_resend = False
             elif self.message.startswith("bbcon resend"):
                 self.resend()
-            elif self.messsage == "bbcon enable superuser":
+            elif self.message == "bbcon enable superuser":
                 superuser_mode = True
             elif self.message == "bbcon disable superuser":
                 superuser_mode = False
