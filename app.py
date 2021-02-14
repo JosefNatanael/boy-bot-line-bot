@@ -254,13 +254,13 @@ class Replier:
     def simple_chat_bot_image_push(self):
         try:
             url = ""
-            if "cepet jing" in self.message or "cpt jing" in self.message:
+            if "cepet jing" in self.message.lower() or "cpt jing" in self.message.lower():
                 url = "https://i.imgur.com/Z6iFmBa.jpg"
-            elif "apa lu" in self.message or "ap lu" in self.message or "apa lw" in self.message or "ap lw" in self.message:
+            elif "apa lu" in self.message.lower() or "ap lu" in self.message.lower() or "apa lw" in self.message.lower() or "ap lw" in self.message.lower():
                 url = "https://i.imgur.com/6JabrpZ.jpg"
-            elif "ganteng" in self.message:
+            elif "ganteng" in self.message.lower():
                 url = "https://i.imgur.com/RuHNWgi.jpg"
-            elif "oi fan" == self.message:
+            elif "oi fan" == self.message.lower():
                 url = "https://i.imgur.com/734wN2R.jpg"
             if url == "":
                 return True
