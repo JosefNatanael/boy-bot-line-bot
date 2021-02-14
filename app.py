@@ -27,7 +27,7 @@ line_bot_api = LineBotApi(os.getenv("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 
 
-instant_resend = False
+instant_resend = True
 superuser_mode = True
 
 
