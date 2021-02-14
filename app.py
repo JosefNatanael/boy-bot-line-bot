@@ -241,7 +241,8 @@ class Replier:
             "https://i.imgur.com/RuHNWgi.jpg",
             "https://i.imgur.com/Z6iFmBa.jpg",
             "https://i.imgur.com/6JabrpZ.jpg",
-            "https://i.imgur.com/734wN2R.jpg"
+            "https://i.imgur.com/734wN2R.jpg",
+            "https://i.imgur.com/eI63jSS.png"
         ]
         selected_index = random.randint(0, len(image_links) - 1)
         image_message = ImageSendMessage(
@@ -262,6 +263,8 @@ class Replier:
                 url = "https://i.imgur.com/RuHNWgi.jpg"
             elif "oi fan" == self.message.lower():
                 url = "https://i.imgur.com/734wN2R.jpg"
+            elif "unyu" in self.message.lower():
+                url = "https://i.imgur.com/eI63jSS.png"
             if url == "":
                 return True
             else:
