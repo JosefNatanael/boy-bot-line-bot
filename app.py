@@ -94,7 +94,6 @@ class Replier:
             results_cursor = collection.find({"message_id": unsend_message_id})
             num_found = collection.count_documents(
                 {"message_id": unsend_message_id})
-            print(unsend_message_id, superuser_mode)
             if num_found == 1:
                 unsend_message = results_cursor[0]["message_text"]
                 unsend_source_user_id = results_cursor[0]["source_user_id"]
@@ -103,9 +102,9 @@ class Replier:
                 dt = datetime.datetime.fromtimestamp(
                     (unsend_message_timestamp + 28800000) / 1000.0).isoformat(" ", "seconds")
 
-                if unsend_message_id == os.getenv("SUPERUSER_ID") and superuser_mode:
+                if unsend_source_user_id == os.getenv("SUPERUSER_ID") and superuser_mode:
                     return True
-                if unsend_message_id == "U02f47026e6e0afb8edb4b262e6308a8f":    # user id stefan
+                if unsend_source_user_id == "U02f47026e6e0afb8edb4b262e6308a8f":    # user id stefan
                     self.prank_stefan()
 
                 if self.event_source_type == "room":
