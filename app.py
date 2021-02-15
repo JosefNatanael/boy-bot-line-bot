@@ -42,14 +42,16 @@ def callback():
 def handle_message(event):
     message = TextSendMessage(text=event.message.text)
     logger.notice(event)
-    rep = Replier(event)
+    rep = Replier(event, mode="message")
     if "bbcon" in message.text[:5] and event.source.user_id == os.getenv("SUPERUSER_ID"):
         rep.start_message_process()
     elif "boybot" in message.text[:6]:
         rep.start_nonadmin_message_process()
     else:
-        rep.simple_chat_bot_image_push()
         rep.save_to_db()
+        replied = rep.simple_chat_bot_image_reply()
+        if not replied:
+            rep.simple_chat_bot_text_reply()
 
 
 @global_settings.handler.add(UnsendEvent)
