@@ -8,6 +8,7 @@ import pymongo
 
 from src.utilclasses import logger
 import global_settings
+import constants
 
 
 class Replier:
@@ -49,11 +50,6 @@ class Replier:
                 self.resend()
             elif self.message == "boybot help":
                 self.show_help()
-            elif self.message == "boybot stefanize":
-                # self.stefanize()
-                pass
-            elif self.message == "boybot quote":
-                pass
         except Exception as e:
             logger.exception(e)
             return False
@@ -220,7 +216,7 @@ class Replier:
         try:
             url = ""
             lower_message = self.message.lower()
-            for img_url, keywords in global_settings.image_dict.items():
+            for img_url, keywords in constants.image_dict.items():
                 for keyword in keywords:
                     if keyword in lower_message:
                         url = img_url
@@ -253,7 +249,7 @@ class Replier:
         try:
             text_message = ""
             lower_message = self.message.lower()
-            for reply_text, keywords in global_settings.text_dict.items():
+            for reply_text, keywords in constants.text_dict.items():
                 for keyword in keywords:
                     if keyword == lower_message:
                         text_message = reply_text

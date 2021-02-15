@@ -7,6 +7,7 @@ from linebot.exceptions import InvalidSignatureError
 from flask import Flask, request, abort
 
 import global_settings
+import constants
 
 from src.replier import Replier
 from src.utilclasses import logger
@@ -15,6 +16,7 @@ from src.utilclasses import logger
 app = Flask(__name__)
 
 global_settings.init()
+constants.init()
 
 # Channel Access Token
 line_bot_api = global_settings.line_bot_api
