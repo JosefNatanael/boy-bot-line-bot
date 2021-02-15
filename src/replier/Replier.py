@@ -9,10 +9,6 @@ import pymongo
 from src.utilclasses import logger
 import global_settings
 
-BOT_API = global_settings.line_bot_api     # a constant
-IMAGE_DICT = global_settings.image_dict  # a constant
-TEXT_DICT = global_settings.text_dict   # a constant
-
 
 class Replier:
     def __init__(self, event, mode="message") -> None:
@@ -84,18 +80,18 @@ class Replier:
                     return True
 
                 if self.event_source_type == "room":
-                    profile = BOT_API.get_room_member_profile(
+                    profile = global_settings.line_bot_api.get_room_member_profile(
                         self.get_room_or_group_id(), unsend_source_user_id)
                     display_name = profile.display_name
                 elif self.event_source_type == "group":
-                    profile = BOT_API.get_group_member_profile(
+                    profile = global_settings.line_bot_api.get_group_member_profile(
                         self.get_room_or_group_id(), unsend_source_user_id)
                     display_name = profile.display_name
                 else:
                     display_name = unsend_source_user_id
 
                 message = f"{display_name} {dt}: {unsend_message}"
-                BOT_API.push_message(
+                global_settings.line_bot_api.push_message(
                     self.get_room_or_group_id(), TextSendMessage(text=message))
             else:
                 print(
@@ -108,7 +104,7 @@ class Replier:
     def show_help(self):
         help_message = "Commands:\nboybot help\nboybot resend"
         try:
-            BOT_API.reply_message(
+            global_settings.line_bot_api.reply_message(
                 self.event.reply_token, TextSendMessage(text=help_message))
         except Exception as e:
             logger.exception(e)
@@ -118,10 +114,10 @@ class Replier:
     def leave(self) -> bool:
         try:
             if self.event_source_type == "room":
-                BOT_API.leave_room(
+                global_settings.line_bot_api.leave_room(
                     self.event.source.room_id)
             elif self.event_source_type == "group":
-                BOT_API.leave_group(
+                global_settings.line_bot_api.leave_group(
                     self.event.source.group_id)
             else:
                 print("Nothing to leave")
@@ -153,11 +149,11 @@ class Replier:
                     continue
 
                 if self.event_source_type == "room":
-                    profile = BOT_API.get_room_member_profile(
+                    profile = global_settings.line_bot_api.get_room_member_profile(
                         room_or_group_id, document['source_user_id'])
                     display_name = profile.display_name
                 elif self.event_source_type == "group":
-                    profile = BOT_API.get_group_member_profile(
+                    profile = global_settings.line_bot_api.get_group_member_profile(
                         room_or_group_id, document['source_user_id'])
                     display_name = profile.display_name
                 else:
@@ -166,7 +162,7 @@ class Replier:
                 resend_message += f"{display_name} {dt}: {document['message_text']}"
                 resend_message += "\n----------\n"
 
-            BOT_API.reply_message(
+            global_settings.line_bot_api.reply_message(
                 self.event.reply_token, TextSendMessage(text=resend_message))
         except Exception as exc:
             logger.exception(exc)
@@ -224,7 +220,7 @@ class Replier:
         try:
             url = ""
             lower_message = self.message.lower()
-            for img_url, keywords in IMAGE_DICT.items():
+            for img_url, keywords in global_settings.image_dict.items():
                 for keyword in keywords:
                     if keyword in lower_message:
                         url = img_url
@@ -240,7 +236,7 @@ class Replier:
                     original_content_url=url,
                     preview_image_url=url
                 )
-                BOT_API.reply_message(
+                global_settings.line_bot_api.reply_message(
                     self.event.reply_token, image_message)
         except Exception as exc:
             logger.exception(exc)
@@ -257,7 +253,7 @@ class Replier:
         try:
             text_message = ""
             lower_message = self.message.lower()
-            for reply_text, keywords in TEXT_DICT.items():
+            for reply_text, keywords in global_settings.text_dict.items():
                 for keyword in keywords:
                     if keyword == lower_message:
                         text_message = reply_text
@@ -269,7 +265,7 @@ class Replier:
             if text_message == "":
                 return False
             else:
-                BOT_API.reply_message(
+                global_settings.line_bot_api.reply_message(
                     self.event.reply_token, TextSendMessage(text=text_message))
         except Exception as exc:
             logger.exception(exc)
