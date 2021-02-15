@@ -9,7 +9,7 @@ from flask import Flask, request, abort
 import global_settings
 
 from src.replier import Replier
-from src.utils import logger
+from src.utilclasses import logger
 
 
 app = Flask(__name__)
