@@ -17,7 +17,18 @@ pip install -r requirements.txt
 
 # Adding Image Reply
 
+Go to chat folder, image_chat.json file
+Enter key-value pairs
+- key: image url (image needs to be less than 1MB)
+- value: array of keyword triggers
+
 # Adding Text Reply
+Go to chat folder, text_chat.json file
+Enter key-value pairs
+ - key: reply text
+ - value: array of keyword triggers
 
 # Notes
-Still using development server
+
+- Still using development server
+- Needs more refactor
