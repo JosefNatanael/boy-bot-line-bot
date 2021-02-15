@@ -58,8 +58,10 @@ class Replier:
                 self.resend()
             elif self.message == "bbcon enable superuser":
                 superuser_mode = True
+                print("superuser_mode", superuser_mode)
             elif self.message == "bbcon disable superuser":
                 superuser_mode = False
+                print("superuser_mode", superuser_mode)
         except Exception as e:
             print(e)
             return False
@@ -92,6 +94,7 @@ class Replier:
             results_cursor = collection.find({"message_id": unsend_message_id})
             num_found = collection.count_documents(
                 {"message_id": unsend_message_id})
+            print(unsend_message_id, superuser_mode)
             if num_found == 1:
                 unsend_message = results_cursor[0]["message_text"]
                 unsend_source_user_id = results_cursor[0]["source_user_id"]
