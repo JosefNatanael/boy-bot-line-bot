@@ -41,7 +41,7 @@ def callback():
 @global_settings.handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = TextSendMessage(text=event.message.text)
-    logger(event)
+    logger.notice(event)
     rep = Replier(event)
     if "bbcon" in message.text[:5] and event.source.user_id == os.getenv("SUPERUSER_ID"):
         rep.start_message_process()
