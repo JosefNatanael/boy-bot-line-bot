@@ -8,11 +8,13 @@ from flask import Flask, request, abort
 
 import global_settings
 
-from replier import Replier
-from utils import logger
+from src.replier import Replier
+from src.utils import logger
 
 
 app = Flask(__name__)
+
+global_settings.init()
 
 # Channel Access Token
 line_bot_api = global_settings.line_bot_api
