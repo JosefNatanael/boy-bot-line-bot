@@ -268,10 +268,10 @@ class Replier:
         """
         try:
             text_message = ""
-            lower_message = self.message.lower()
+            clean_message = self.message.lower().strip()
             for reply_text, keywords in constants.text_dict.items():
                 for keyword in keywords:
-                    if keyword == lower_message:
+                    if keyword.strip() == clean_message:
                         text_message = reply_text
                         break
                 else:
