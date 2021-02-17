@@ -269,17 +269,15 @@ class Replier:
         try:
             text_message = ""
             clean_message = self.message.lower().strip()
-            logger.notice(clean_message)
             for reply_text, keywords in constants.text_dict.items():
                 for keyword in keywords:
-                    if keyword.strip() == clean_message:
+                    if keyword.lower().strip() == clean_message:
                         text_message = reply_text
                         break
                 else:
                     continue
                 break
 
-            logger.notice(text_message)
             if text_message == "":
                 return False
             else:
