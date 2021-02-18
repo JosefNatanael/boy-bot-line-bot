@@ -321,7 +321,6 @@ class Replier:
             # Actions
             postback_action = PostbackAction(
                 label="Start Now", data="send emergency meeting image", display_text=None)
-            cancel_action = MessageAction(label="Cancel", text=None)
 
             dt_picker_action = DatetimePickerAction(
                 label="WIP", data="dt_picker data", mode="datetime")
@@ -330,7 +329,7 @@ class Replier:
             b_template = ButtonsTemplate(title="Emergency meeting", text="Emergency Meeting",
                                          thumbnail_image_url=constants.emergency_button_image_url, image_aspect_ratio="square",
                                          actions=[
-                                             postback_action, cancel_action, dt_picker_action])
+                                             postback_action, dt_picker_action])
 
             # Template Mesage
             template_message = TemplateSendMessage(
