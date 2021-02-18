@@ -320,8 +320,8 @@ class Replier:
         try:
             # Actions
             postback_action = PostbackAction(
-                label="Start Now", data="send emergency meeting image", display_text="")
-            cancel_action = MessageAction(label="Cancel", text="")
+                label="Start Now", data="send emergency meeting image", display_text=None)
+            cancel_action = MessageAction(label="Cancel", text=None)
 
             dt_picker_action = DatetimePickerAction(
                 label="WIP", data="dt_picker data", mode="datetime")
