@@ -292,8 +292,7 @@ class Replier:
 
     def example_button_template(self):
         try:
-            text = "Emergency Meeting"
-            title = "Start emergency meeting"
+            # Actions
             postback_action = PostbackAction(
                 label="postback action label", data="postback data", display_text="postback text")
             message_action = MessageAction(
@@ -301,10 +300,16 @@ class Replier:
             dt_picker_action = DatetimePickerAction(
                 label="dt picker label", data="dt_picker data", mode="datetime")
             camera_roll_action = CameraRollAction(label="camera roll label")
-            b_template = ButtonsTemplate(text=text, title=title, actions=[
+
+            # Button template
+            b_template = ButtonsTemplate(text="Emergency Meeting", title="Start emergency meeting", actions=[
                 postback_action, message_action, dt_picker_action, camera_roll_action])
+
+            # Template Mesage
+            template_message = TemplateSendMessage(
+                alt_text="contains a button template", template=b_template)
             global_settings.line_bot_api.reply_message(
-                self.event.reply_token, b_template)
+                self.event.reply_token, template_message)
         except Exception as exc:
             logger.exception(exc)
             return False
