@@ -294,12 +294,12 @@ class Replier:
         try:
             # Actions
             postback_action = PostbackAction(
-                label="postback action label", data="postback data", display_text="postback text")
+                label="postback lbl", data="postback data", display_text="postback text")
             message_action = MessageAction(
-                label="message label", text="message text")
+                label="message lbl", text="message text")
             dt_picker_action = DatetimePickerAction(
-                label="dt picker label", data="dt_picker data", mode="datetime")
-            camera_roll_action = CameraRollAction(label="camera roll label")
+                label="dt lbl", data="dt_picker data", mode="datetime")
+            camera_roll_action = CameraRollAction(label="croll lbl")
 
             # Button template
             b_template = ButtonsTemplate(text="Emergency Meeting", title="Start emergency meeting", actions=[
@@ -307,7 +307,7 @@ class Replier:
 
             # Template Mesage
             template_message = TemplateSendMessage(
-                alt_text="contains a button template", template=b_template)
+                alt_text="a button template", template=b_template)
             global_settings.line_bot_api.reply_message(
                 self.event.reply_token, template_message)
         except Exception as exc:
