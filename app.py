@@ -78,14 +78,16 @@ def handle_message(event):
 
 @global_settings.handler.add(UnsendEvent)
 def handle_unsend(event):
-    print(event)
+    logger.notice(event)
     if instant_resend:
         Replier(event, mode="unsend")
 
 
 @global_settings.handler.add(PostbackEvent)
 def handle_postback(event):
-    print(event)
+    logger.notice(event)
+    Replier(event, mode="postback")
+
 
 
 if __name__ == "__main__":

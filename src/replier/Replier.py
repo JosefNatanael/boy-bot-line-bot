@@ -74,6 +74,8 @@ class Replier:
                 self.resend()
             elif self.message == "boybot help":
                 self.show_help()
+            elif self.message == "boybot meeting":
+                self.emergency_meeting_template_bot()
         except Exception as e:
             logger.exception(e)
             return False
