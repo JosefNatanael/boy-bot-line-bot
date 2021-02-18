@@ -1,21 +1,21 @@
 # Copyright (C) 2021 Josef Natanael
-# 
+#
 # This file is part of BoyBot LINE bot.
-# 
+#
 # BoyBot LINE bot is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # BoyBot LINE bot is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with BoyBot LINE bot.  If not, see <http://www.gnu.org/licenses/>.
-# 
-# This copyright notice and this permission notice shall be included in 
+#
+# This copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
 import os
@@ -59,6 +59,8 @@ class Replier:
                 global_settings.superuser_mode = True
             elif self.message == "bbcon disable superuser":
                 global_settings.superuser_mode = False
+            elif self.message == "bbcon button template":
+                self.example_button_template()
         except Exception as e:
             logger.exception(e)
             return False
@@ -283,6 +285,26 @@ class Replier:
             else:
                 global_settings.line_bot_api.reply_message(
                     self.event.reply_token, TextSendMessage(text=text_message))
+        except Exception as exc:
+            logger.exception(exc)
+            return False
+        return True
+
+    def example_button_template(self):
+        try:
+            text = "Emergency Meeting"
+            title = "Start emergency meeting"
+            postback_action = PostbackAction(
+                label="postback action label", data="postback data", display_text="postback text")
+            message_action = MessageAction(
+                label="message label", text="message text")
+            dt_picker_action = DatetimePickerAction(
+                label="dt picker label", data="dt_picker data", mode="datetime")
+            camera_roll_action = CameraRollAction(label="camera roll label")
+            b_template = ButtonsTemplate(text=text, title=title, actions=[
+                postback_action, message_action, dt_picker_action, camera_roll_action])
+            global_settings.line_bot_api.reply_message(
+                self.event.reply_token, b_template)
         except Exception as exc:
             logger.exception(exc)
             return False
