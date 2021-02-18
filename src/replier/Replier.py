@@ -34,7 +34,7 @@ import constants
 class Replier:
     def __init__(self, event, mode="message") -> None:
         """
-            mode: string. "message" | "unsend"
+            mode: string. "message" | "unsend" | "postback"
             event_source_type. "room" | "group"
         """
         self.event = event
@@ -44,6 +44,8 @@ class Replier:
             self.message = event.message.text
         elif self.mode == "unsend":
             self.start_unsend_process()
+        elif self.mode == "postback":
+            self.process_postback()
 
     def start_message_process(self):
         try:
@@ -59,8 +61,8 @@ class Replier:
                 global_settings.superuser_mode = True
             elif self.message == "bbcon disable superuser":
                 global_settings.superuser_mode = False
-            elif self.message == "bbcon button template":
-                self.example_button_template()
+            elif self.message == "bbcon button debug":
+                self.debug_button_template()
         except Exception as e:
             logger.exception(e)
             return False
@@ -116,6 +118,28 @@ class Replier:
                     "Ambiguous unsend, probably unsent message is a bbcon command or non text")
         except Exception as e:
             logger.exception(e)
+            return False
+        return True
+
+    def process_postback(self):
+        try:
+            postback_data = self.event.postback.data
+            url = ""
+
+            if postback_data == "send emergency meeting image":
+                url = constants.emergency_meeting_image_url
+
+            if url == "":
+                return False
+            else:
+                image_message = ImageSendMessage(
+                    original_content_url=url,
+                    preview_image_url=url
+                )
+                global_settings.line_bot_api.reply_message(
+                    self.event.reply_token, image_message)
+        except Exception as exc:
+            logger.exception(exc)
             return False
         return True
 
@@ -290,7 +314,33 @@ class Replier:
             return False
         return True
 
-    def example_button_template(self):
+    def emergency_meeting_template_bot(self):
+        try:
+            # Actions
+            postback_action = PostbackAction(
+                label="Start Now", data="send emergency meeting image", display_text="")
+            cancel_action = MessageAction(label="Cancel", text="")
+
+            dt_picker_action = DatetimePickerAction(
+                label="WIP", data="dt_picker data", mode="datetime")
+
+            # Button template
+            b_template = ButtonsTemplate(title="Emergency meeting", text="Emergency Meeting",
+                                         thumbnail_image_url=constants.emergency_button_image_url, image_aspect_ratio="square",
+                                         actions=[
+                                             postback_action, cancel_action, dt_picker_action])
+
+            # Template Mesage
+            template_message = TemplateSendMessage(
+                alt_text="Emergency Meeting", template=b_template)
+            global_settings.line_bot_api.reply_message(
+                self.event.reply_token, template_message)
+        except Exception as exc:
+            logger.exception(exc)
+            return False
+        return True
+
+    def debug_button_template(self):
         try:
             # Actions
             postback_action = PostbackAction(

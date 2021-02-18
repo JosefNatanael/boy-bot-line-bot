@@ -25,13 +25,16 @@ from src.utilclasses import logger
 
 
 def init():
-    global image_dict, text_dict
+    global image_dict, text_dict, emergency_button_image_url, emergency_meeting_image_url
 
     # Image dict
     image_dict = load_image_dict()
 
     # Text dict
     text_dict = load_text_dict()
+
+    emergency_button_image_url = "https://i.imgur.com/HUb6Xvf.jpg"
+    emergency_meeting_image_url = "https://i.imgur.com/3suoOpj.png"
 
 
 def load_image_dict():
