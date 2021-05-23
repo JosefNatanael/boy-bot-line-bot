@@ -4,3 +4,5 @@ python-dotenv
 autopep8
 pymongo
 dnspython
+python-coinmarketcap
+prettytable

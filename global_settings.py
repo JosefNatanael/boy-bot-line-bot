@@ -26,13 +26,16 @@ from linebot import (
     LineBotApi, WebhookHandler
 )
 
+from coinmarketcapapi import CoinMarketCapAPI
+
 
 def init():
-    global client, db, line_bot_api, handler, instant_resend, superuser_mode
+    global client, db, cmc, line_bot_api, handler, instant_resend, superuser_mode
 
     # DB stuff
     client = MongoClient(os.getenv("MONGODB_CONNECTION_STRING"))
     db = client[os.getenv("MONGODB_DATABASE")]
+    cmc = CoinMarketCapAPI(os.getenv("CMC_API"))
 
     # Channel Access Token
     line_bot_api = LineBotApi(os.getenv("CHANNEL_ACCESS_TOKEN"))

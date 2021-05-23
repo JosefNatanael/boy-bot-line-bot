@@ -29,6 +29,8 @@ import pymongo
 from src.utilclasses import logger
 import global_settings
 import constants
+from coinmarketcapapi import CoinMarketCapAPI
+from prettytable import PrettyTable
 
 
 class Replier:
@@ -76,6 +78,8 @@ class Replier:
                 self.show_help()
             elif self.message == "boybot meeting":
                 self.emergency_meeting_template_bot()
+            elif self.message == "boybot coin":
+                self.crypto_coin_data_reply()
         except Exception as e:
             logger.exception(e)
             return False
@@ -255,6 +259,37 @@ class Replier:
             return self.event.source.room_id
         elif self.event_source_type == "group":
             return self.event.source.group_id
+
+    def crypto_coin_data_reply(self):
+        """
+        Reply current BTC, ETH, ADA, BNB
+
+        Return True if successful
+        Return False otherwise
+        """
+        t = PrettyTable(["Coin", "Latest Price"])
+        help_message = str(t)
+        try:
+            raw_data_response = global_settings.cmc.cryptocurrency_quotes_latest(symbol="btc,eth,ada,bnb")
+            data = raw_data_response.data
+            btc_price = data["BTC"]["quote"]["USD"]["price"]
+            eth_price = data["ETH"]["quote"]["USD"]["price"]
+            bnb_price = data["BNB"]["quote"]["USD"]["price"]
+            ada_price = data["ADA"]["quote"]["USD"]["price"]
+
+            t.add_row(["BTC", btc_price])
+            t.add_row(["ETH", eth_price])
+            t.add_row(["BNB", bnb_price])
+            t.add_row(["ADA", ada_price])
+
+            help_message = str(t)
+
+            global_settings.line_bot_api.reply_message(
+                self.event.reply_token, TextSendMessage(text=help_message))
+        except Exception as e:
+            logger.exception(e)
+            return False
+        return True
 
     def simple_chat_bot_image_reply(self) -> bool:
         """
